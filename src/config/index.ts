@@ -18,5 +18,9 @@ export const Config = {
       process.env.X_TWITTER_CALLBACK_URL ||
       'http://localhost:300/v1/auth/x-twitter/callback',
   },
-  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS
+  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS,
+  WETROCLOUD: {
+    API_URL: process.env.WETROCLOUD_API,
+    SECRET_KEY: process.env.WETROCLOUD_SECRET_KEY
+  }
 };

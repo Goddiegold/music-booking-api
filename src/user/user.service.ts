@@ -9,7 +9,8 @@ import { DatabaseService } from 'src/database/database.service';
 import {
   comparePasswords,
   errorMessage,
-  generateHashedPassword
+  generateHashedPassword,
+  generateUsername
 } from 'src/shared/utils';
 
 @Injectable()
@@ -28,12 +29,18 @@ export class UserService {
 
       if (userExists) throw new BadRequestException('User already registered!');
       const password = generateHashedPassword(user.password);
-
       const newUser = await this.databaseService.createUser({
         payload: { ...user, password, lastLoginAt } as User,
       });
 
-      return { ...newUser, password: null };
+      const username = generateUsername(false, user?.name, newUser?.userId)
+      await this.databaseService.updateUser({
+        userId: user?.userId,
+        payload: {
+          username
+        }
+      })
+      return { ...newUser, username, password: null };
     } catch (error) {
       throw new InternalServerErrorException(errorMessage(error));
     }
