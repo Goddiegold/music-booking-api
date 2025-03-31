@@ -10,8 +10,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum user_role {
+  admin           @map("admin")
+  artist          @map("artist")
+  event_organizer @map("event_organizer")
+}
+
+enum booking_status {
+  pending  @map("pending")
+  accepted @map("accepted")
+  rejected @map("rejected")
+}
+
 model User {
-  userId        String         @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String     @id @default(auto()) @map("_id") @db.ObjectId
   name          String
   email         String
   username      String?
@@ -20,36 +32,38 @@ model User {
   phone         String?
   otl           String?
   otlDuration   DateTime?
-  createdAt     DateTime?      @default(now())
+  createdAt     DateTime?  @default(now())
   lastLoginAt   DateTime?
-  updatedAt     DateTime?      @updatedAt
-  authProviders String[]       @default([])
-  conversations Conversation[]
+  updatedAt     DateTime?  @updatedAt
+  authProviders String[]   @default([])
+  role          user_role?
+  bookings      Booking[]
+  events        Event[]
 }
 
-model Conversation {
-  conversationId String    @id @default(auto()) @map("_id") @db.ObjectId
-  messages       Message[]
-  title          String?
-  userId         String    @db.ObjectId
-  user           User      @relation(fields: [userId], references: [userId])
+model Event {
+  eventId String @id @default(auto()) @map("_id") @db.ObjectId
+  type    String
+  amount  Float
 
-  collection_id  String?
-  resource       String?
-  type           String?
-  
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  organizerId String @db.ObjectId
+  organizer   User   @relation(fields: [organizerId], references: [userId])
+
+  bookings Booking[] // One event can have multiple bookings
+
+  updatedAt DateTime? @updatedAt
+  createdAt DateTime? @default(now())
 }
 
-model Message {
-  messageId String @id @default(auto()) @map("_id") @db.ObjectId
+model Booking {
+  bookingId String @id @default(auto()) @map("_id") @db.ObjectId
+  eventId   String @db.ObjectId
+  event     Event  @relation(fields: [eventId], references: [eventId])
 
-  content String
+  artistId String @db.ObjectId
+  artist   User   @relation(fields: [artistId], references: [userId])
 
-  conversationId String       @db.ObjectId
-  conversation   Conversation @relation(fields: [conversationId], references: [conversationId], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  status    booking_status @default(pending)
+  createdAt DateTime?      @default(now())
+  updatedAt DateTime?      @updatedAt
 }

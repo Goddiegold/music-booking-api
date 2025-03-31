@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Conversation, Message, User } from '@prisma/client';
+import { User, Event, Booking } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
 import { isValidObjectId } from 'src/shared/utils';
 
@@ -53,108 +53,149 @@ export class DatabaseService {
     return updatedUser;
   }
 
-  async createConversation({ conversation }: { conversation: Conversation }) {
-    const newConvo = await this.prisma.conversation.create({
+  async createEvent({ event }: { event: Event }) {
+    const newEvent = await this.prisma.event.create({
       data: {
-        ...conversation,
+        ...event,
       },
     });
 
-    return newConvo;
+    return newEvent;
   }
 
-  async getUserConvos({
-    userId,
-    withMessages = false,
-  }: {
-    userId: string;
-    withMessages?: boolean;
-  }) {
-    let include = {};
-    if (withMessages) {
-      include = { messages: true };
-    }
-    const convos = await this.prisma.conversation.findMany({
-      ...include,
+  async updateEvent({ event, eventId }: { event: Event; eventId: string }) {
+    const updatedEvent = await this.prisma.event.update({
       where: {
-        userId,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-
-    return convos;
-  }
-
-  async delConvo({ conversationId }: { conversationId: string }) {
-    const convo = await this.prisma.conversation.delete({
-      where: {
-        conversationId,
-      },
-    });
-
-    return convo;
-  }
-
-  async createMessage({ message }: { message: Message }) {
-    const newMessage = await this.prisma.message.create({
-      data: {
-        ...message,
-      },
-    });
-
-    return newMessage;
-  }
-
-  async deleteMessage({ messageId }: { messageId: string }) {
-    const message = await this.prisma.message.delete({
-      where: {
-        messageId,
-      },
-    });
-
-    return message;
-  }
-
-  async getConversation({
-    conversationId,
-    withMessages,
-  }: {
-    conversationId: string;
-    withMessages?: boolean;
-  }) {
-    let include = {};
-
-    if (withMessages) {
-      include = { messages: true };
-    }
-
-    const collection = await this.prisma.conversation.findFirst({
-      ...include,
-      where: {
-        conversationId,
-      },
-    });
-
-    return collection;
-  }
-
-  async updateConversation({
-    conversationId,
-    payload,
-  }: {
-    conversationId: string;
-    payload: Partial<Conversation>;
-  }) {
-    const conversation = await this.prisma.conversation.update({
-      where: {
-        conversationId,
+        eventId,
       },
       data: {
-        ...payload
+        ...event,
+      },
+    });
+
+    return updatedEvent;
+  }
+
+  async getEvent({ eventId }: { eventId: string }) {
+    const event = await this.prisma.event.findFirst({
+      where: {
+        eventId,
+      },
+    });
+    return event;
+  }
+
+  async deleteEvent({ eventId }: { eventId: string }) {
+    const event = await this.prisma.event.findFirst({
+      where: {
+        eventId,
+      },
+    });
+    return event;
+  }
+
+  async getEvents() {
+    const events = await this.prisma.event.findMany();
+    return events;
+  }
+
+  async getOrganiserEvents({ organizerId }: { organizerId: string }) {
+    const events = await this.prisma.event.findMany({
+      where: { organizerId },
+    });
+    return events;
+  }
+
+  async getArtistEvents({ artistId }: { artistId: string }) {
+    const events = await this.prisma.event.findMany({
+      where: {
+        bookings: {
+          some: {
+            artistId,
+          },
+        },
+      },
+    });
+    return events;
+  }
+
+  async createBooking({
+    eventId,
+    artistId,
+  }: {
+    artistId: string;
+    eventId: string;
+  }) {
+    const booking = await this.prisma.booking.create({
+      data: {
+        eventId,
+        artistId,
+      },
+    });
+
+    return booking;
+  }
+
+  async getBooking({ bookingId }: { bookingId: string }) {
+    const booking = await this.prisma.booking.findFirst({
+      where: { bookingId },
+    });
+    return booking;
+  }
+
+  async deleteBooking({ bookingId }: { bookingId: string }) {
+    await this.prisma.booking.delete({ where: { bookingId } });
+    return { bookingId };
+  }
+
+  async updateBooking({
+    bookingId,
+    booking,
+  }: {
+    bookingId: string;
+    booking: Partial<Booking>;
+  }) {
+    const updatedBooking = await this.prisma.booking.update({
+      where: {
+        bookingId,
+      },
+      data: {
+        ...booking,
+      },
+    });
+
+    return updatedBooking;
+  }
+
+  async getArtistBookings({ artistId }: { artistId: string }) {
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        artistId,
+      },
+    });
+
+    return bookings;
+  }
+
+  async getOrganiserBookings({ organizerId }: { organizerId: string }) {
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        event: {
+          organizerId,
+        },
+      },
+    });
+
+    return bookings;
+  }
+
+  async getUserByOtl({ otl }: { otl: string }) {
+    const userWithOtl = await this.prisma.user.findFirst({
+      where: {
+        otl
       }
     })
-    return conversation;
+
+    return userWithOtl;
   }
 }

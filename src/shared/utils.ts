@@ -79,20 +79,3 @@ export function extractNameFromUsername(username: string) {
   const partBeforeUnderscore = username.split('_')[0];
   return partBeforeUnderscore.replace('-', ' ');
 }
-
-export const wetroCloudAxiosInstance = (() => {
-  const axiosInstance = axios.create({
-    baseURL: Config.WETROCLOUD.API_URL + '/v1',
-  });
-
-  const secretKey = Config.WETROCLOUD.API_URL;
-
-  axiosInstance.interceptors.request.use((config) => {
-    config.headers['Content-Type'] = 'application/json';
-    config.headers.Authorization = `Token ${secretKey}`;
-    return config;
-  });
-
-
-  return axiosInstance;
-})();

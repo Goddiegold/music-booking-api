@@ -1,8 +1,7 @@
-import { Body, Controller, Get, Param, Post, Query, Req, Res } from '@nestjs/common';
+import { Body, Controller, Param, Post, Res } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import { Response } from 'express';
-import { Config } from 'src/config';
 import { ResetPaswordStep1, ResetPaswordStep2 } from 'src/dto';
 import { ResponseBody } from 'src/types';
 import { AuthService } from './auth.service';
@@ -29,63 +28,6 @@ export class AuthController {
     }
   }
 
-  // @UseGuards(GoogleAuthGuard)
-  @Get('/google')
-  async loginGoogleUser(@Query() qs: any, @Res() res): Promise<void> {
-    try {
-      console.log({ qs });
-    } catch (e) {
-      // throw new HttpException(e.message, 401);
-      return res.redirect(`${Config.WEB_CLIENT}/login?error=${e.message}`);
-    }
-  }
-  // @UseGuards(GoogleAuthGuard)
-  @Get('/google/callback')
-  async googleAuthCallback(@Req() req, @Res() res) {
-    try {
-      const userData: User = req.user;
-      // console.log("userData", userData);
-
-      const frontendRedirectUrl = await this.authService.createUserWithSSO({
-        provider: 'google',
-        userData,
-      });
-
-      // console.log('redirectUrl', frontendRedirectUrl);
-      return res.redirect(frontendRedirectUrl);
-    } catch (e) {
-      // throw new HttpException(e.message, 401);
-      return res.redirect(`${Config.WEB_CLIENT}/login?error=${e.message}`);
-    }
-  }
-
-  // @UseGuards(GoogleAuthGuard)
-  @Get('/google')
-  async loginXTwitterUser(@Query() qs: any, @Res() res): Promise<void> {
-    try {
-      console.log({ qs });
-    } catch (e) {
-      // throw new HttpException(e.message, 401);
-      return res.redirect(`${Config.WEB_CLIENT}/login?error=${e.message}`);
-    }
-  }
-  // @UseGuards(GoogleAuthGuard)
-  @Get('/google/callback')
-  async xTwitterAuthCallback(@Req() req, @Res() res) {
-    try {
-      const userData: User = req.user;
-      // console.log("userData", userData);
-
-      const frontendRedirectUrl = await this.authService.createUserWithSSO({
-        provider: 'twitter',
-        userData,
-      });
-
-      return res.redirect(frontendRedirectUrl);
-    } catch (e) {
-      return res.redirect(`${Config.WEB_CLIENT}/login?error=${e.message}`);
-    }
-  }
 
   @Post('/reset-password')
   async resetPasswordStep1(
