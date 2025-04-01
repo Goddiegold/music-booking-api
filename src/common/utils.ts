@@ -1,4 +1,3 @@
-import axios from 'axios';
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { Config } from 'src/config';

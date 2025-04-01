@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { Event, user_role } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
-import { errorMessage } from 'src/shared/utils';
+import { errorMessage } from 'src/common/utils';
 
 @Injectable()
 export class EventService {

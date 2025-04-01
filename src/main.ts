@@ -3,13 +3,12 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Config } from './config';
 import { ValidationPipe } from '@nestjs/common';
-import * as morgan from 'morgan';
+// import * as morgan from 'morgan';
 
 async function bootstrap() {
-  // console.log("ALLOWED_ORIGINS", Config.ALLOWED_ORIGINS?.split(','));
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
-  app.use(morgan('dev')); 
+  // app.use(morgan('dev'));
   app.enableCors({
     credentials: true,
     origin: Config.ALLOWED_ORIGINS?.split(','),
@@ -18,5 +17,6 @@ async function bootstrap() {
     methods: ['POST', 'PUT', 'GET', 'OPTIONS', 'DELETE', 'PATCH'],
   });
   await app.listen(5353);
+  console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();

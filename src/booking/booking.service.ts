@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
-import { errorMessage } from 'src/shared/utils';
+import { errorMessage } from 'src/common/utils';
 import { booking_status, user_role } from '@prisma/client';
 
 @Injectable()

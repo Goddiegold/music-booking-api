@@ -4,20 +4,17 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { User, user_role } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
 import {
   comparePasswords,
   errorMessage,
   generateHashedPassword,
-  generateUsername
-} from 'src/shared/utils';
+} from 'src/common/utils';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private databaseService: DatabaseService,
-  ) { }
+  constructor(private databaseService: DatabaseService) { }
 
   async createUser({ user }: { user: Partial<User> }) {
     try {
@@ -33,14 +30,7 @@ export class UserService {
         payload: { ...user, password, lastLoginAt } as User,
       });
 
-      const username = generateUsername(false, user?.name, newUser?.userId)
-      await this.databaseService.updateUser({
-        userId: user?.userId,
-        payload: {
-          username
-        }
-      })
-      return { ...newUser, username, password: null };
+      return { ...newUser, password: null };
     } catch (error) {
       throw new InternalServerErrorException(errorMessage(error));
     }
@@ -50,13 +40,10 @@ export class UserService {
     try {
       const user = await this.databaseService.getUser({ userEmailOrId });
       if (!user) throw new NotFoundException('User not found!');
-      // const portfolios = await this.databaseService.getUserPortfolios({
-      //   userId: user.userId,
-      // });
+
       return {
         ...user,
         password: null,
-        // portfolios,
       };
     } catch (error) {
       throw new InternalServerErrorException(errorMessage(error));
@@ -91,7 +78,6 @@ export class UserService {
     }
   }
 
-
   async updateUserPassword({
     userId,
     currentPassword,
@@ -120,6 +106,33 @@ export class UserService {
         },
       });
       return { message: 'Password updated successfully!' };
+    } catch (error) {
+      throw new InternalServerErrorException(errorMessage(error));
+    }
+  }
+
+  async completeOnboarding({
+    userId,
+    role,
+  }: {
+    userId: string;
+    role: user_role;
+  }) {
+    try {
+      const user = await this.databaseService.getUser({
+        userEmailOrId: userId,
+      });
+
+      if (!user) throw new NotFoundException(`User [${userId}] not found!`);
+
+      const updatedUser = await this.databaseService.updateUser({
+        userId,
+        payload: {
+          role,
+        },
+      });
+
+      return { ...updatedUser, password: null }
     } catch (error) {
       throw new InternalServerErrorException(errorMessage(error));
     }

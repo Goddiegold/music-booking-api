@@ -13,7 +13,7 @@ import { Event, User } from '@prisma/client';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { ResponseBody } from 'src/types';
 import { EventService } from './event.service';
-import { CurrentUser } from 'src/shared/decorators';
+import { CurrentUser } from 'src/common/decorators';
 
 @Controller('api/event')
 export class UserController {

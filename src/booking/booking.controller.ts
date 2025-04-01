@@ -11,7 +11,7 @@ import { Booking, User } from '@prisma/client';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { ResponseBody } from 'src/types';
 import { BookingService } from './booking.service';
-import { CurrentUser } from 'src/shared/decorators';
+import { CurrentUser } from 'src/common/decorators';
 
 @Controller('api/booking')
 export class BookingController {

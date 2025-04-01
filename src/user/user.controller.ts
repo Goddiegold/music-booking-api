@@ -12,10 +12,11 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import { Response } from 'express';
 import { CreateUserDTO, UpdateUserDTO } from 'src/dto';
+import { CompleteOnboardingDTO, UpdatePasswordDTO } from 'src/dto/user.dto';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { ResponseBody } from 'src/types';
 import { UserService } from './user.service';
-import { UpdatePasswordDTO } from 'src/dto/user.dto';
+import { CurrentUser } from 'src/common/decorators';
 
 @Controller('api/user')
 export class UserController {
@@ -38,6 +39,20 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Patch('/onboarding')
+  async completeOnboarding(
+    @CurrentUser() currentUser: User,
+    @Body() body: CompleteOnboardingDTO,
+  ) {
+    const userId = currentUser?.userId;
+    const result = await this.userService.completeOnboarding({
+      userId,
+      role: body?.accountType,
+    });
+    if (result) return { result }
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('/profile')
   async getUserProfile(@Req() req): Promise<ResponseBody<User>> {
     const user = req?.user;
@@ -55,7 +70,11 @@ export class UserController {
   ): Promise<ResponseBody<User>> {
     const user = req?.user as User;
     const result = await this.userService.updateUser({
-      payload: { phone: body.phone },
+      payload: {
+        phone: body.phone,
+        name: body?.name,
+        password: body.password,
+      },
       userId: user?.userId,
     });
     if (result) return { result };
@@ -70,8 +89,8 @@ export class UserController {
     const user = req?.user as User;
     const result = await this.userService.updateUserPassword({
       userId: user.userId,
-      ...body
-    })
+      ...body,
+    });
     if (result) return { ...result };
   }
 }

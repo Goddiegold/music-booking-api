@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { User, Event, Booking } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
-import { isValidObjectId } from 'src/shared/utils';
+import { isValidObjectId } from 'src/common/utils';
 
 @Injectable()
 export class DatabaseService {
