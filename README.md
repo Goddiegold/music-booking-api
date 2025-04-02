@@ -32,5 +32,5 @@ npm run start:dev
 ### 6️⃣ Wait for Application to Start
 Once the server starts, you should see:
 ```
-Application is running on: http://localhost:5000
+Application is running on: http://localhost:5353
 ```
