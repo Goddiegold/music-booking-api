@@ -44,7 +44,7 @@ model User {
 model Event {
   eventId String @id @default(auto()) @map("_id") @db.ObjectId
   type    String
-  amount  Float
+  budget  Float
 
   organizerId String @db.ObjectId
   organizer   User   @relation(fields: [organizerId], references: [userId])

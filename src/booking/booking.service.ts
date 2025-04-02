@@ -1,15 +1,17 @@
 import {
+  BadRequestException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
-  NotFoundException,
+  NotFoundException
 } from '@nestjs/common';
-import { DatabaseService } from 'src/database/database.service';
-import { errorMessage } from 'src/common/utils';
 import { booking_status, user_role } from '@prisma/client';
+import { errorMessage } from 'src/common/utils';
+import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class BookingService {
-  constructor(private databaseService: DatabaseService) { }
+  constructor(private databaseService: DatabaseService) {}
 
   async createBooking({
     artistId,
@@ -19,6 +21,15 @@ export class BookingService {
     eventId: string;
   }) {
     try {
+      const existingBooking = await this.databaseService.getArtistEventBooking({
+        eventId,
+        artistId,
+      });
+      if (existingBooking) {
+        throw new BadRequestException(
+          `Artist [${artistId}] already booked for event [${eventId}]!`,
+        );
+      }
       return this.databaseService.createBooking({ eventId, artistId });
     } catch (error) {
       throw new InternalServerErrorException(errorMessage(error));
@@ -38,12 +49,22 @@ export class BookingService {
     }
   }
 
-  async deleteBooking({ bookingId }: { bookingId: string }) {
+  async deleteBooking({
+    bookingId,
+    currentUserId,
+  }: {
+    bookingId: string;
+    currentUserId: string;
+  }) {
     try {
-      const booking = this.databaseService.getBooking({ bookingId });
+      const booking = await this.databaseService.getBooking({ bookingId });
 
       if (!booking)
-        throw new NotFoundException(`Booking ${[bookingId]} not found!`);
+        throw new NotFoundException(`Booking [${bookingId}] not found!`);
+
+      if (currentUserId !== booking.event.organizerId) {
+        throw new ForbiddenException("You can't perform this action!");
+      }
 
       const deletedBooking = await this.databaseService.deleteBooking({
         bookingId,
@@ -57,15 +78,21 @@ export class BookingService {
   async decideOnBooking({
     bookingId,
     status,
+    currentUserId,
   }: {
     bookingId: string;
     status: booking_status;
+    currentUserId: string;
   }) {
     try {
-      const booking = this.databaseService.getBooking({ bookingId });
+      const booking = await this.databaseService.getBooking({ bookingId });
 
       if (!booking)
         throw new NotFoundException(`Booking ${[bookingId]} not found!`);
+
+      if (booking?.artistId !== currentUserId) {
+        throw new ForbiddenException("You can't perform this action");
+      }
 
       const updatedBooking = await this.databaseService.updateBooking({
         bookingId,
@@ -96,7 +123,7 @@ export class BookingService {
 
       if (userRole === user_role.event_organizer) {
         return this.databaseService.getOrganiserBookings({
-          organizerId: organizerOrArtisteId
+          organizerId: organizerOrArtisteId,
         });
       }
     } catch (error) {

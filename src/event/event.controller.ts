@@ -14,6 +14,7 @@ import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { ResponseBody } from 'src/types';
 import { EventService } from './event.service';
 import { CurrentUser } from 'src/common/decorators';
+import { CreateEventDTO, UpdateEventDTO } from 'src/dto';
 
 @Controller('api/event')
 export class UserController {
@@ -42,8 +43,15 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Post('/create')
-  async createEvent(@Body() body): Promise<ResponseBody<Event>> {
-    const result = await this.eventService.createEvent({ event: body });
+  async createEvent(
+    @Body() body: CreateEventDTO,
+    @CurrentUser() currentUser: User,
+  ): Promise<ResponseBody<Event>> {
+    const payload = {
+      ...body,
+      organizerId: currentUser?.userId,
+    };
+    const result = await this.eventService.createEvent({ event: payload });
     return { result };
   }
 
@@ -61,21 +69,27 @@ export class UserController {
   @Patch('/:eventId')
   async updateEvent(
     @Param('eventId') eventId: string,
-    @Body() body,
+    @Body() body: UpdateEventDTO,
+    @CurrentUser() currentUser: User,
   ): Promise<ResponseBody<Event>> {
     const result = await this.eventService.updateEvent({
       eventId,
       event: body,
+      currentUserId: currentUser?.userId,
     });
     if (result) return { result };
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete(':/eventId')
+  @Delete('/:eventId')
   async deleteEvent(
     @Param('eventId') eventId: string,
+    @CurrentUser() currentUser: User,
   ): Promise<ResponseBody<Partial<Event>>> {
-    const result = await this.eventService.deleteEvent({ eventId });
+    const result = await this.eventService.deleteEvent({
+      eventId,
+      currentUserId: currentUser?.userId,
+    });
     if (result) return { result };
   }
 }

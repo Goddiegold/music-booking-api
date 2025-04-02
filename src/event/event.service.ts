@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -9,11 +10,11 @@ import { errorMessage } from 'src/common/utils';
 
 @Injectable()
 export class EventService {
-  constructor(private databaseService: DatabaseService) { }
+  constructor(private databaseService: DatabaseService) {}
 
-  async createEvent({ event }: { event: Event }) {
+  async createEvent({ event }: { event: Partial<Event> }) {
     try {
-      return this.databaseService.createEvent({ event });
+      return this.databaseService.createEvent({ event: event as Event });
     } catch (error) {
       throw new InternalServerErrorException(errorMessage(error));
     }
@@ -32,7 +33,15 @@ export class EventService {
     }
   }
 
-  async updateEvent({ event, eventId }: { eventId: string; event: Event }) {
+  async updateEvent({
+    event,
+    eventId,
+    currentUserId,
+  }: {
+    eventId: string;
+    event: Partial<Event>;
+    currentUserId: string;
+  }) {
     try {
       const eventExist = await this.databaseService.getEvent({ eventId });
 
@@ -40,8 +49,12 @@ export class EventService {
         throw new NotFoundException(`Event ${[eventId]} not found!`);
       }
 
+      if (eventExist?.organizerId !== currentUserId) {
+        throw new ForbiddenException("You can't perform this action");
+      }
+
       const updatedEvent = await this.databaseService.updateEvent({
-        event,
+        event: event as Event,
         eventId,
       });
       return updatedEvent;
@@ -82,7 +95,13 @@ export class EventService {
     }
   }
 
-  async deleteEvent({ eventId }: { eventId: string }) {
+  async deleteEvent({
+    eventId,
+    currentUserId,
+  }: {
+    eventId: string;
+    currentUserId: string;
+  }) {
     try {
       const event = await this.databaseService.getEvent({ eventId });
 
@@ -90,7 +109,10 @@ export class EventService {
         throw new NotFoundException(`Event ${[eventId]} not found!`);
       }
 
-      const deletedEvent = await this.databaseService.deleteEvent({ eventId })
+      if (event?.organizerId !== currentUserId) {
+        throw new ForbiddenException("You can't perform this action");
+      }
+      const deletedEvent = await this.databaseService.deleteEvent({ eventId });
 
       return deletedEvent;
     } catch (error) {

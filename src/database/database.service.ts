@@ -86,7 +86,7 @@ export class DatabaseService {
   }
 
   async deleteEvent({ eventId }: { eventId: string }) {
-    const event = await this.prisma.event.findFirst({
+    const event = await this.prisma.event.delete({
       where: {
         eventId,
       },
@@ -138,6 +138,15 @@ export class DatabaseService {
 
   async getBooking({ bookingId }: { bookingId: string }) {
     const booking = await this.prisma.booking.findFirst({
+      include: {
+        event: {
+          select: {
+            organizerId: true,
+            type: true,
+            eventId: true
+          }
+        }
+      },
       where: { bookingId },
     });
     return booking;
@@ -192,10 +201,27 @@ export class DatabaseService {
   async getUserByOtl({ otl }: { otl: string }) {
     const userWithOtl = await this.prisma.user.findFirst({
       where: {
-        otl
-      }
-    })
+        otl,
+      },
+    });
 
     return userWithOtl;
+  }
+
+  async getArtistEventBooking({
+    eventId,
+    artistId,
+  }: {
+    eventId: string;
+    artistId: string;
+  }) {
+    const booking = await this.prisma.booking.findFirst({
+      where: {
+        eventId,
+        artistId,
+      },
+    });
+
+    return booking;
   }
 }

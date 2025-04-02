@@ -15,7 +15,19 @@ import { CurrentUser } from 'src/common/decorators';
 
 @Controller('api/booking')
 export class BookingController {
-  constructor(private readonly bookingService: BookingService) { }
+  constructor(private readonly bookingService: BookingService) {}
+
+  @Get('/my')
+  @UseGuards(JwtAuthGuard)
+  async getMyBookings(@CurrentUser() currentUser: User) {
+    const userRole = currentUser?.role;
+    const userId = currentUser?.userId;
+    const result = await this.bookingService.getMyBookings({
+      userRole,
+      organizerOrArtisteId: userId,
+    });
+    return { result };
+  }
 
   @UseGuards(JwtAuthGuard)
   @Post('/:eventId')
@@ -42,32 +54,32 @@ export class BookingController {
 
   @UseGuards(JwtAuthGuard)
   @Delete('/:bookingId')
-  async deleteBooking(@Param('bookingId') bookingId: string) {
-    const result = await this.bookingService.getBooking({
+  async deleteBooking(
+    @Param('bookingId') bookingId: string,
+    @CurrentUser() currentUser: User,
+  ) {
+    const userId = currentUser?.userId;
+    const result = await this.bookingService.deleteBooking({
       bookingId,
+      currentUserId: userId,
     });
     if (result) return { result };
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('/:bookingId')
-  async decideOnBooking(@Param('bookingId') bookingId: string, @Body() body) {
+  async decideOnBooking(
+    @Param('bookingId') bookingId: string,
+    @Body() body,
+    @CurrentUser() currentUser: User,
+  ) {
     const result = await this.bookingService.decideOnBooking({
       bookingId,
       status: body?.status,
+      currentUserId: currentUser?.userId,
     });
     if (result) return { result };
   }
 
-  @Get('/my')
-  @UseGuards(JwtAuthGuard)
-  async getMyBookings(@CurrentUser() currentUser: User) {
-    const userRole = currentUser?.role;
-    const userId = currentUser?.userId;
-    const result = await this.bookingService.getMyBookings({
-      userRole,
-      organizerOrArtisteId: userId,
-    });
-    return { result }
-  }
+  
 }
