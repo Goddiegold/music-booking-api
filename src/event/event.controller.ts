@@ -9,16 +9,17 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Event, User } from '@prisma/client';
+import { Event, User, user_role } from '@prisma/client';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { ResponseBody } from 'src/types';
 import { EventService } from './event.service';
-import { CurrentUser } from 'src/common/decorators';
+import { CurrentUser, Roles } from 'src/common/decorators';
 import { CreateEventDTO, UpdateEventDTO } from 'src/dto';
+import { RBACGuard } from 'src/guards/rbac.guard';
 
 @Controller('api/event')
 export class UserController {
-  constructor(private readonly eventService: EventService) {}
+  constructor(private readonly eventService: EventService) { }
 
   @UseGuards(JwtAuthGuard)
   @Get('/all')
@@ -41,6 +42,8 @@ export class UserController {
     if (result) return { result };
   }
 
+  @UseGuards(JwtAuthGuard, RBACGuard)
+  @Roles(user_role.event_organizer)
   @UseGuards(JwtAuthGuard)
   @Post('/create')
   async createEvent(
@@ -65,7 +68,9 @@ export class UserController {
     if (result) return { result };
   }
 
-  @UseGuards(JwtAuthGuard)
+
+  @UseGuards(JwtAuthGuard, RBACGuard)
+  @Roles(user_role.event_organizer)
   @Patch('/:eventId')
   async updateEvent(
     @Param('eventId') eventId: string,
@@ -80,7 +85,9 @@ export class UserController {
     if (result) return { result };
   }
 
-  @UseGuards(JwtAuthGuard)
+ 
+  @UseGuards(JwtAuthGuard, RBACGuard)
+  @Roles(user_role.event_organizer)
   @Delete('/:eventId')
   async deleteEvent(
     @Param('eventId') eventId: string,

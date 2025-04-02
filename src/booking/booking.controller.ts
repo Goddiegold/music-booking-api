@@ -7,11 +7,12 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { Booking, User } from '@prisma/client';
+import { Booking, User, user_role } from '@prisma/client';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { ResponseBody } from 'src/types';
 import { BookingService } from './booking.service';
-import { CurrentUser } from 'src/common/decorators';
+import { CurrentUser, Roles} from 'src/common/decorators';
+import { RBACGuard } from 'src/guards/rbac.guard';
 
 @Controller('api/booking')
 export class BookingController {
@@ -29,7 +30,8 @@ export class BookingController {
     return { result };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RBACGuard)
+  @Roles(user_role.event_organizer)
   @Post('/:eventId')
   async createBooking(
     @Body() body,
@@ -52,6 +54,8 @@ export class BookingController {
     if (result) return { result };
   }
 
+  @UseGuards(JwtAuthGuard, RBACGuard)
+  @Roles(user_role.event_organizer)
   @UseGuards(JwtAuthGuard)
   @Delete('/:bookingId')
   async deleteBooking(
@@ -66,7 +70,9 @@ export class BookingController {
     if (result) return { result };
   }
 
-  @UseGuards(JwtAuthGuard)
+
+  @UseGuards(JwtAuthGuard, RBACGuard)
+  @Roles(user_role.artist)
   @Post('/:bookingId')
   async decideOnBooking(
     @Param('bookingId') bookingId: string,
