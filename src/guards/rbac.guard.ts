@@ -33,7 +33,7 @@ export class RBACGuard implements CanActivate {
       if (!user?.role) {
         throw new ForbiddenException({
           success: false,
-          message: "Ensured you have've gone through the onboarding endpoint!",
+          message: "Ensure you have've gone through the onboarding endpoint!",
         });
       }
       throw new ForbiddenException({
